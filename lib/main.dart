@@ -3,7 +3,37 @@ import 'package:flutter_app/ClientModel.dart';
 import 'package:flutter_app/Database.dart';
 
 void main() =>
-    runApp(MaterialApp(debugShowCheckedModeBanner: false, home: MyApp()));
+    runApp(MaterialApp(debugShowCheckedModeBanner: false, home: MainApp()));
+
+class MainApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Home")),
+      body: Card(
+        child: new InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyApp()),
+              );
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const ListTile(
+                  leading: Icon(
+                    Icons.person_add,
+                    color: Colors.deepOrange,
+                  ),
+                  title: Text('Check Users'),
+                ),
+              ],
+            )),
+      ),
+    );
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
