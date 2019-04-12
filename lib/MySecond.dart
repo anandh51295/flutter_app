@@ -127,6 +127,7 @@ class MyCustomFormState extends State<MyCustomForm> {
             },
           ),
           TextFormField(
+            keyboardType: TextInputType.number,
             decoration: InputDecoration(labelText: 'Enter Quantity'),
             validator: (value2) {
               if (value2.isEmpty) {
@@ -230,6 +231,7 @@ class Mdetail extends State<MyEditForm> {
               },
             ),
             TextFormField(
+              keyboardType: TextInputType.number,
               initialValue: userid.Quantity,
               decoration: InputDecoration(
                 labelText: 'Quantity',
