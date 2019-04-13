@@ -1,38 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/SecondModel.dart';
+import 'package:flutter_app/ThirdModel.dart';
+import 'package:flutter_app/ClientModel.dart';
 import 'package:flutter_app/Database.dart';
 
-class MySecond extends StatefulWidget {
+class MyThird extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MySecond> {
+class _MyAppState extends State<MyThird> {
 
 
-  Second userid = new Second();
+  Third userid = new Third();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Mat")),
-      body: FutureBuilder<List<Second>>(
-        future: DBProvider.db.getAllSecond(),
-        builder: (BuildContext context, AsyncSnapshot<List<Second>> snapshot) {
+      body: FutureBuilder<List<Third>>(
+        future: DBProvider.db.getAllThird(),
+        builder: (BuildContext context, AsyncSnapshot<List<Third>> snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               itemCount: snapshot.data.length,
               itemBuilder: (BuildContext context, int index) {
-                Second item = snapshot.data[index];
+                Third item = snapshot.data[index];
                 return Dismissible(
                   key: UniqueKey(),
                   background: Container(color: Colors.red),
                   onDismissed: (direction) {
-                    DBProvider.db.deleteSecond(item.id);
+                    DBProvider.db.deleteThird(item.nid);
                   },
                   child: ListTile(
-                    title: Text(item.Userdetails),
-                    leading: Text(item.id.toString()),
+                    title: Text(item.Partyname),
+                    leading: Text(item.nid.toString()),
                     trailing: Text("Totalprice"+item.Totalprice.toString()),
                     onTap: () {
                       Navigator.push(
@@ -72,7 +73,7 @@ class SecondRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Mat"),
+        title: Text("Add Nool"),
       ),
       body: Center(child: MyCustomForm()),
     );
@@ -88,8 +89,8 @@ class MyCustomForm extends StatefulWidget {
 
 // ignore: must_be_immutable
 class MyEditForm extends StatefulWidget {
-  Second userid = new Second();
-  MyEditForm(Second userid) {
+  Third userid = new Third();
+  MyEditForm(Third userid) {
     this.userid = userid;
   }
   @override
@@ -106,50 +107,104 @@ class MyCustomFormState extends State<MyCustomForm> {
   //
   // Note: This is a GlobalKey<FormState>, not a GlobalKey<MyCustomFormState>!
   final _formKey = GlobalKey<FormState>();
-  var muserdetails, mquantity, mprice;
+  var mpartyname, mcolorquantity, mcolorprice,mwhitequantity,mwhiteprice,mpaid;
   int mtotalprice;
+
+  List _cities = new List();
+  List<Client> ctest;
+
+  List<DropdownMenuItem<String>> _dropDownMenuItems;
+  String _currentCity;
 
   @override
   Widget build(BuildContext context) {
     // Build a Form widget using the _formKey we created above
+    ctest.addAll(DBProvider.db.getAllParty());
+    int clen=ctest.length;
+    for(int k=0;k<clen;k++){
+      _cities.add(ctest.elementAt(k));
+    }
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          TextFormField(
-            decoration: InputDecoration(labelText: 'Enter Name/Address'),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Please Enter Name/Address';
-              } else {
-                muserdetails = value;
-              }
-            },
+          new Text("Please choose Party: "),
+          new Container(
+            padding: new EdgeInsets.all(16.0),
+          ),
+          new DropdownButton(
+            value: _currentCity,
+            items: _dropDownMenuItems,
+            onChanged: changedDropDownItem,
           ),
           TextFormField(
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Enter Quantity'),
+            decoration: InputDecoration(labelText: 'Enter ColorQuantity'),
             validator: (value2) {
               if (value2.isEmpty) {
-                return 'Please Enter Quantity';
+                return 'Please Enter ColorQuantity';
               } else {
-                mquantity = value2;
+                mcolorquantity = value2;
               }
             },
           ),
           TextFormField(
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Enter Price'),
+            decoration: InputDecoration(labelText: 'Enter ColorPrice'),
             validator: (value3) {
               if (value3.isEmpty) {
-                return 'Please Enter Price';
+                return 'Please Enter ColorPrice';
               } else {
-                mprice = value3;
+                mcolorprice = value3;
               }
             },
 
           ),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Enter WhiteQuantity'),
+            validator: (value2) {
+              if (value2.isEmpty) {
+                return 'Please Enter WhiteQuantity';
+              } else {
+                mwhitequantity = value2;
+              }
+            },
+          ),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Enter WhitePrice'),
+            validator: (value3) {
+              if (value3.isEmpty) {
+                return 'Please Enter WhitePrice';
+              } else {
+                mwhiteprice = value3;
+              }
+            },
+
+          ),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Total Price'),
+            validator: (value3) {
+              mtotalprice = int.parse(value3);
+            },
+
+          ),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Paid'),
+            validator: (value3) {
+              if (value3.isEmpty) {
+                return 'Please Enter Paid Price';
+              } else {
+                mpaid = value3;
+              }
+            },
+
+          ),
+
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: RaisedButton(
@@ -158,16 +213,21 @@ class MyCustomFormState extends State<MyCustomForm> {
                 // the form is invalid.
                 if (_formKey.currentState.validate()) {
                   // If the form is valid, we want to show a Snackbar
-                        if(mquantity.toString().isNotEmpty&&mprice.toString().isNotEmpty){
-                          mtotalprice=int.parse(mquantity)*int.parse(mprice);
-                        }
-                  Second testClients = Second(
-                      Userdetails: muserdetails,
-                      Quantity: mquantity,
-                      Price: mprice,
-
-                      Totalprice: mtotalprice.toString());
-                  await DBProvider.db.newSecond(testClients);
+                  if(mcolorquantity.toString().isNotEmpty&&mcolorprice.toString().isNotEmpty){
+                    mtotalprice=int.parse(mcolorquantity)*int.parse(mcolorprice);
+                  }
+                  if(mwhitequantity.toString().isNotEmpty&&mwhiteprice.toString().isNotEmpty){
+                    mtotalprice=mtotalprice+(int.parse(mwhitequantity)*int.parse(mwhiteprice));
+                  }
+                  Third testClients = Third(
+                      Partyname: _currentCity,
+                      Colorquantity: mcolorquantity,
+                      Colorprice: mcolorprice,
+                      Whitequantity: mwhitequantity,
+                      Whiteprice: mwhiteprice,
+                      Totalprice: mtotalprice.toString(),
+                      Paid:mpaid);
+                  await DBProvider.db.newThird(testClients);
                   Scaffold.of(context).showSnackBar(SnackBar(
                       content: Text('Mat Inserted Successfully...!')));
                   Navigator.pop(context);
@@ -179,12 +239,18 @@ class MyCustomFormState extends State<MyCustomForm> {
         ],
       ),
     );
+
+  }
+  void changedDropDownItem(String selectedCity) {
+    setState(() {
+      _currentCity = selectedCity;
+    });
   }
 }
 
 // ignore: must_be_immutable
 class DetailScreen extends StatelessWidget {
-  Second userid = new Second();
+  Third userid = new Third();
 
   DetailScreen({Key key, @required this.userid}) : super(key: key);
 
@@ -201,14 +267,20 @@ class DetailScreen extends StatelessWidget {
 }
 
 class Mdetail extends State<MyEditForm> {
-  Second userid = new Second();
+  Third userid = new Third();
   int mid;
-  Mdetail(Second userid) {
+  Mdetail(Third userid) {
     this.userid = userid;
-    mid = this.userid.id;
+    mid = this.userid.nid;
   }
-  String muserdetails, mquantity, mprice;
+  String mcolorquantity, mcolorprice,mwhiteprice,mwhitequantity;
   int mtotalprice;
+
+  List _cities = new List();
+  List<Client> ctest;
+
+  List<DropdownMenuItem<String>> _dropDownMenuItems;
+  String _currentCity;
 
   final _fKey = GlobalKey<FormState>();
   @override
@@ -218,45 +290,41 @@ class Mdetail extends State<MyEditForm> {
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            TextFormField(
-              initialValue: userid.Userdetails,
-              decoration: InputDecoration(
-                labelText: 'Name/Address',
-              ),
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Please Enter Name/Address';
-                } else {
-                  muserdetails = value;
-                }
-              },
+            new Text("Please choose Party: "),
+            new Container(
+              padding: new EdgeInsets.all(16.0),
+            ),
+            new DropdownButton(
+              value: _currentCity,
+              items: _dropDownMenuItems,
+              onChanged: changedDropDownItem,
             ),
             TextFormField(
               keyboardType: TextInputType.number,
-              initialValue: userid.Quantity,
+              initialValue: userid.Colorquantity,
               decoration: InputDecoration(
                 labelText: 'Quantity',
               ),
               validator: (value2) {
                 if (value2.isEmpty) {
-                  return 'Please Enter Quantity';
+                  return 'Please Enter colorQuantity';
                 } else {
-                  mquantity = value2;
+//                  mcolorq = value2;
                 }
               },
             ),
             TextFormField(
 
               keyboardType: TextInputType.number,
-              initialValue: userid.Price,
+              initialValue: userid.Colorprice,
               decoration: InputDecoration(
                 labelText: 'Price',
               ),
               validator: (value3) {
                 if (value3.isEmpty) {
-                  return 'Please Enter Price';
+                  return 'Please Enter colorPrice';
                 } else {
-                  mprice = value3;
+//                  mprice = value3;
                 }
               },
             ),
@@ -264,26 +332,33 @@ class Mdetail extends State<MyEditForm> {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: RaisedButton(
                 onPressed: () async {
-                  if (_fKey.currentState.validate()) {
-                    if(mquantity.toString().isNotEmpty&&mprice.toString().isNotEmpty){
-                      mtotalprice=int.parse(mquantity)*int.parse(mprice);
-                    }
-                    Second tClients = Second(
-                        id: mid,
-                        Userdetails: muserdetails,
-                        Quantity: mquantity,
-                        Price: mprice,
-                        Totalprice: mtotalprice.toString());
-                    await DBProvider.db.updateSecond(tClients);
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Mat Updated Successfully...!')));
-                    Navigator.pop(context);
-                  }
+//                  if (_fKey.currentState.validate()) {
+//                    if(mquantity.toString().isNotEmpty&&mprice.toString().isNotEmpty){
+//                      mtotalprice=int.parse(mquantity)*int.parse(mprice);
+//                    }
+//                    Third tClients = Third(
+//                        id: mid,
+//                        Userdetails: muserdetails,
+//                        Quantity: mquantity,
+//                        Price: mprice,
+//                        Totalprice: mtotalprice.toString());
+//                    await DBProvider.db.updateSecond(tClients);
+//                    Scaffold.of(context).showSnackBar(SnackBar(
+//                        content: Text('Mat Updated Successfully...!')));
+//                    Navigator.pop(context);
+//                  }
                 },
                 child: Text('Submit'),
               ),
             ),
           ]),
+
     );
+
+  }
+  void changedDropDownItem(String selectedCity) {
+    setState(() {
+      _currentCity = selectedCity;
+    });
   }
 }

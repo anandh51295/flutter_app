@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_app/ClientModel.dart';
 import 'package:flutter_app/SecondModel.dart';
+import 'package:flutter_app/ThirdModel.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBProvider {
@@ -32,12 +33,25 @@ class DBProvider {
           "address TEXT,"
           "mobile TEXT"
           ")");
+
       await db.execute("CREATE TABLE Mat ("
           "id INTEGER PRIMARY KEY,"
           "userdetails TEXT,"
           "quantity TEXT,"
           "price TEXT,"
           "totalprice TEXT"
+          ")");
+
+      await db.execute("CREATE TABLE Nool ("
+          "nid INTEGER PRIMARY KEY AUTOINCREMENT,"
+          "partyname TEXT NOT NULL"
+          "colorquantity TEXT,"
+          "colorprice TEXT,"
+          "whitequantity TEXT,"
+          "whiteprice TEXT,"
+          "totalprice TEXT,"
+          "paid TEXT,"
+          "FOREIGN KEY (partyname) REFERENCES Client(name) ON DELETE CASCADE ON UPDATE CASCADE"
           ")");
     });
   }
@@ -74,6 +88,28 @@ class DBProvider {
     return raw;
   }
 
+  newThird(Third newThird) async {
+    final db = await database;
+    //get the biggest id in the table
+    var table = await db.rawQuery("SELECT MAX(nid)+1 as id FROM Nool");
+    int nid = table.first["nid"];
+    //insert to the table using the new id
+    var raw = await db.rawInsert(
+        "INSERT Into Nool (nid,partyname,colorquantity,colorprice,whitequantity,whiteprice,totalprice,paid)"
+            " VALUES (?,?,?,?,?,?,?,?)",
+        [
+          nid,
+          newThird.Partyname,
+          newThird.Colorquantity,
+          newThird.Colorprice,
+          newThird.Whitequantity,
+          newThird.Whiteprice,
+          newThird.Totalprice,
+          newThird.Paid,
+        ]);
+    return raw;
+  }
+
 //  blockOrUnblock(Client client) async {
 //    final db = await database;
 //    Client blocked = Client(
@@ -104,6 +140,12 @@ class DBProvider {
     var res = await db.query("Client");
     List<Client> list =
         res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  getAllParty() async {
+    final db = await database;
+    List<Map> list = await db.rawQuery('SELECT * FROM Client');
     return list;
   }
 
@@ -146,5 +188,36 @@ class DBProvider {
   deleteSecondAll() async {
     final db = await database;
     db.rawDelete("Delete * from Mat");
+  }
+
+  updateThird(Third newThird) async {
+    final db = await database;
+    var res = await db.update("Nool", newThird.toMap(),
+        where: "nid = ?", whereArgs: [newThird.nid]);
+    return res;
+  }
+
+  getThird(int nid) async {
+    final db = await database;
+    var res = await db.query("Nool", where: "id = ?", whereArgs: [nid]);
+    return res.isNotEmpty ? Second.fromMap(res.first) : null;
+  }
+
+  Future<List<Third>> getAllThird() async {
+    final db = await database;
+    var res = await db.query("Nool");
+    List<Third> list =
+    res.isNotEmpty ? res.map((c) => Second.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  deleteThird(int id) async {
+    final db = await database;
+    return db.delete("Nool", where: "id = ?", whereArgs: [id]);
+  }
+
+  deleteThirdAll() async {
+    final db = await database;
+    db.rawDelete("Delete * from Nool");
   }
 }

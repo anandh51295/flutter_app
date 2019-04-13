@@ -5,7 +5,7 @@ Second secondFromJson(String str) {
   return Second.fromMap(jsonData);
 }
 
-String clientToJson(Second data) {
+String secondToJson(Second data) {
   final dyn = data.toMap();
   return json.encode(dyn);
 }
